@@ -217,7 +217,7 @@ void onDie(CBlob@ this)
 			Vec2f pos = this.getPosition();
 
 			f32 radsq = radius * 8 * radius * 8;
-
+			
 			for (int x_step = -radius; x_step < radius; ++x_step)
 			{
 				for (int y_step = -radius; y_step < radius; ++y_step)
@@ -234,9 +234,25 @@ void onDie(CBlob@ this)
 					{
 						map.server_SetTile(tpos, CMap::tile_grass);
 					}
-					
-					if (!map.isTileSolid(t) && map.isTileGround(map.getTile(tpos+Vec2f(0,8)).type))
+
+					if (!map.isTileSolid(t) && (map.isTileGround(map.getTile(tpos+Vec2f(0,8)).type)))
 					{
+						CBlob@[] tileblobs;
+						map.getBlobsAtPosition(tpos,tileblobs);
+						bool canspawn = true;
+
+						if (tileblobs.get_length() > 255 && tileblobs is null) return;
+
+						for (u8 i = 0; i < tileblobs.get_length(); i++) 
+						{
+							string name = tileblobs[i].getName();
+							if (name == "grain_plant" || name == "bush" || name == "flower" )
+							{
+								canspawn = false;
+								break;
+							}
+						}
+						if (!canspawn) continue;
 						if(XORRandom(2) == 0)server_CreateBlob("bush", -1, tpos);
 						else {
 							CBlob @flow = server_CreateBlob("flowers", -1, tpos);
